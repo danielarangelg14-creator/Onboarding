@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluación de Adaptación · Metelmex</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="config.js"></script>
+<style>
+  :root{
+    --navy:#1F3864;
+    --blue:#2E5FA3;
+    --light-blue:#BDD7EE;
+    --gray:#F2F2F2;
+    --white:#FFFFFF;
+    --ink:#1B2A41;
+    --muted:#5B6B82;
+    --ok:#2E5FA3;
+    --warn:#A6483C;
+    --radius:10px;
+    --shadow:0 1px 3px rgba(31,56,100,0.10),0 1px 2px rgba(31,56,100,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Century Gothic','Futura','Trebuchet MS',sans-serif;
+    background:var(--gray);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .app{display:flex;min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:220px;
+    background:var(--navy);
+    color:var(--white);
+    display:flex;
+    flex-direction:column;
+    flex-shrink:0;
+  }
+  .brand{
+    padding:26px 22px 18px;
+    border-bottom:1px solid rgba(255,255,255,0.12);
+  }
+  .brand .mark{
+    font-weight:bold;
+    font-size:19px;
+    letter-spacing:0.5px;
+  }
+  .brand .sub{
+    font-size:11.5px;
+    color:var(--light-blue);
+    margin-top:4px;
+    letter-spacing:0.4px;
+  }
+  .nav{padding:16px 12px;flex:1;}
+  .nav button{
+    width:100%;
+    text-align:left;
+    background:transparent;
+    border:none;
+    color:var(--light-blue);
+    font-family:inherit;
+    font-size:14px;
+    padding:11px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:4px;
+    transition:background .15s;
+  }
+  .nav button svg{flex-shrink:0;opacity:.85;}
+  .nav button:hover{background:rgba(255,255,255,0.08);}
+  .nav button.active{background:var(--blue);color:var(--white);}
+  .sidebar-foot{
+    padding:16px 22px;
+    font-size:10.5px;
+    color:rgba(255,255,255,0.45);
+    border-top:1px solid rgba(255,255,255,0.12);
+  }
+
+  /* ---------- Main ---------- */
+  .main{flex:1;padding:28px 34px 60px;max-width:1180px;}
+  .page-head{margin-bottom:22px;}
+  .page-head h1{
+    margin:0 0 4px;
+    font-size:23px;
+    color:var(--navy);
+    font-weight:bold;
+  }
+  .page-head p{margin:0;color:var(--muted);font-size:13.5px;}
+
+  .banner{
+    background:var(--light-blue);
+    border:1px solid #9dc3e8;
+    color:var(--navy);
+    border-radius:var(--radius);
+    padding:12px 16px;
+    font-size:13px;
+    margin-bottom:20px;
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+  }
+  .banner b{font-weight:bold;}
+  .banner code{background:rgba(255,255,255,.6);padding:1px 5px;border-radius:4px;}
+
+  /* KPI cards */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .kpi{
+    background:var(--white);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    box-shadow:var(--shadow);
+  }
+  .kpi .label{font-size:11.5px;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;}
+  .kpi .value{font-size:26px;font-weight:bold;color:var(--navy);margin-top:6px;}
+  .kpi .value small{font-size:14px;font-weight:normal;color:var(--muted);}
+
+  /* Charts row */
+  .charts-row{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-bottom:22px;}
+  .card{
+    background:var(--white);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    box-shadow:var(--shadow);
+  }
+  .card h3{margin:0 0 12px;font-size:14px;color:var(--navy);font-weight:bold;}
+  .chart-wrap{position:relative;height:220px;}
+  .chart-wrap.wide{height:230px;}
+
+  /* Table */
+  .table-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .table-toolbar{
+    display:flex;gap:10px;padding:16px 20px;border-bottom:1px solid var(--gray);flex-wrap:wrap;
+  }
+  .table-toolbar input, .table-toolbar select{
+    font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid #d9e2ec;
+    border-radius:7px;background:var(--white);color:var(--ink);
+  }
+  .table-toolbar input{flex:1;min-width:160px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;background:var(--gray);color:var(--navy);
+    padding:10px 16px;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;
+    border-bottom:2px solid var(--light-blue);
+  }
+  tbody td{padding:11px 16px;border-bottom:1px solid #eef1f5;color:var(--ink);}
+  tbody tr:hover{background:#F7FAFD;cursor:pointer;}
+  .badge{
+    display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:bold;
+  }
+  .badge.excelente{background:#dbeeff;color:var(--navy);}
+  .badge.bueno{background:#e4ecfa;color:var(--blue);}
+  .badge.regular{background:#eef3f8;color:#3d5a80;}
+  .badge.bajo{background:#f6e3e0;color:var(--warn);}
+  .empty-state{padding:40px 20px;text-align:center;color:var(--muted);font-size:13.5px;}
+
+  /* ---------- Form ---------- */
+  .journey{display:flex;align-items:center;gap:10px;margin-bottom:24px;}
+  .journey .step{
+    flex:1;background:var(--white);border-radius:var(--radius);padding:14px 18px;
+    box-shadow:var(--shadow);border-left:4px solid var(--blue);
+  }
+  .journey .step h4{margin:0 0 2px;font-size:13.5px;color:var(--navy);}
+  .journey .step span{font-size:11.5px;color:var(--muted);}
+  .journey .arrow{color:var(--light-blue);font-size:20px;}
+
+  .form-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 28px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:22px;}
+  .field label{display:block;font-size:12px;color:var(--navy);font-weight:bold;margin-bottom:6px;}
+  .field input{
+    width:100%;font-family:inherit;font-size:13.5px;padding:10px 12px;
+    border:1px solid #d9e2ec;border-radius:7px;color:var(--ink);
+  }
+  .section-title{
+    font-size:13.5px;font-weight:bold;color:var(--white);background:var(--navy);
+    padding:9px 14px;border-radius:7px;margin:22px 0 14px;
+  }
+  .question{
+    display:grid;grid-template-columns:1.6fr repeat(5,0.7fr);align-items:center;
+    gap:8px;padding:10px 6px;border-bottom:1px solid #eef1f5;
+  }
+  .question:first-of-type{margin-top:2px;}
+  .question .qtext{font-size:13px;color:var(--ink);}
+  .scale-head{
+    display:grid;grid-template-columns:1.6fr repeat(5,0.7fr);gap:8px;padding:0 6px 6px;
+  }
+  .scale-head span{font-size:10px;color:var(--muted);text-align:center;line-height:1.2;}
+  .option{display:flex;justify-content:center;}
+  .option input{width:17px;height:17px;accent-color:var(--blue);cursor:pointer;}
+
+  .summary-bar{
+    display:flex;align-items:center;gap:22px;margin-top:22px;padding:18px 22px;
+    background:var(--gray);border-radius:var(--radius);flex-wrap:wrap;
+  }
+  .gauge{width:72px;height:72px;flex-shrink:0;}
+  .summary-text{flex:1;min-width:200px;}
+  .summary-text .pct{font-size:22px;font-weight:bold;color:var(--navy);}
+  .summary-text .lvl{font-size:12.5px;color:var(--muted);}
+  .submit-btn{
+    background:var(--blue);color:var(--white);border:none;font-family:inherit;
+    font-size:14px;font-weight:bold;padding:12px 26px;border-radius:8px;cursor:pointer;
+    transition:background .15s;
+  }
+  .submit-btn:hover{background:var(--navy);}
+  .submit-btn:disabled{background:#a9b8cc;cursor:not-allowed;}
+  .form-msg{font-size:12.5px;margin-top:10px;}
+  .form-msg.ok{color:var(--blue);}
+  .form-msg.err{color:var(--warn);}
+
+  /* Detail modal */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(15,26,45,0.45);display:none;
+    align-items:center;justify-content:center;z-index:50;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{
+    background:var(--white);border-radius:12px;padding:26px 28px;width:420px;max-width:90vw;
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+  }
+  .modal h3{margin:0 0 4px;color:var(--navy);font-size:17px;}
+  .modal .meta{font-size:12.5px;color:var(--muted);margin-bottom:16px;}
+  .modal .row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #eef1f5;}
+  .modal-close{
+    margin-top:16px;background:var(--gray);border:none;padding:9px 16px;border-radius:7px;
+    font-family:inherit;font-size:13px;color:var(--navy);cursor:pointer;float:right;
+  }
+
+  @media (max-width:900px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    .charts-row{grid-template-columns:1fr;}
+    .form-grid{grid-template-columns:1fr;}
+    .question{grid-template-columns:1fr repeat(5,1fr);font-size:11.5px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="mark">METELMEX</div>
+      <div class="sub">Recursos Humanos</div>
+    </div>
+    <div class="nav">
+      <button id="navDashboard" class="active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard
+      </button>
+      <button id="navForm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Nueva Evaluación
+      </button>
+    </div>
+    <div class="sidebar-foot">F62-21 · Evaluación de Adaptación</div>
+  </div>
+
+  <div class="main">
+
+    <!-- ============ DASHBOARD VIEW ============ -->
+    <div id="viewDashboard">
+      <div class="page-head">
+        <h1>Evaluación de Adaptación</h1>
+        <p>Panel de seguimiento — proceso de bienvenida e integración de nuevos colaboradores</p>
+      </div>
+
+      <div id="demoBanner" class="banner" style="display:none;">
+        <div>⚠</div>
+        <div><b>Modo demo.</b> No hay una hoja de Google Sheets conectada, así que estás viendo datos de ejemplo. Configura tu <code>config.js</code> con la URL de tu Apps Script (ver README.md) para conectar tus datos reales.</div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="label">Evaluaciones</div><div class="value" id="kpiTotal">–</div></div>
+        <div class="kpi"><div class="label">Promedio general</div><div class="value" id="kpiPromedio">–</div></div>
+        <div class="kpi"><div class="label">Excelente + Bueno</div><div class="value" id="kpiBuenas">–</div></div>
+        <div class="kpi"><div class="label">Últimos 30 días</div><div class="value" id="kpiRecientes">–</div></div>
+      </div>
+
+      <div class="charts-row">
+        <div class="card">
+          <h3>Nivel de adaptación por evaluación (más recientes)</h3>
+          <div class="chart-wrap wide"><canvas id="chartTrend"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Distribución por nivel</h3>
+          <div class="chart-wrap"><canvas id="chartNivel"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <h3>Promedio de calificación por Área / Planta</h3>
+        <div class="chart-wrap"><canvas id="chartArea"></canvas></div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <input type="text" id="searchInput" placeholder="Buscar por nombre o área/planta…">
+          <select id="filterNivel">
+            <option value="">Todos los niveles</option>
+            <option value="Excelente">Excelente</option>
+            <option value="Bueno">Bueno</option>
+            <option value="Regular">Regular</option>
+            <option value="Bajo">Bajo</option>
+          </select>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Colaborador</th><th>Área / Planta</th><th>Fecha</th><th>Puntaje</th><th>%</th><th>Nivel</th></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state" style="display:none;">Aún no hay evaluaciones registradas.</div>
+      </div>
+    </div>
+
+    <!-- ============ FORM VIEW ============ -->
+    <div id="viewForm" style="display:none;">
+      <div class="page-head">
+        <h1>Nueva Evaluación de Adaptación</h1>
+        <p>Coloca 1 punto en la opción que corresponda. El puntaje se calcula automáticamente.</p>
+      </div>
+
+      <div class="journey">
+        <div class="step"><h4>Sección 1</h4><span>Proceso de bienvenida · máx. 20 pts</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><h4>Sección 2</h4><span>Integración al puesto · máx. 30 pts</span></div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field"><label>Nombre del colaborador</label><input type="text" id="fNombre" placeholder="Nombre completo"></div>
+          <div class="field"><label>Área / Planta</label><input type="text" id="fArea" placeholder="Ej. Planta 2 — Producción"></div>
+          <div class="field"><label>Fecha</label><input type="date" id="fFecha"></div>
+        </div>
+
+        <div class="section-title">Sección 1 — Proceso de bienvenida</div>
+        <div class="scale-head">
+          <span></span><span>Muy malo (1)</span><span>Malo (2)</span><span>Regular (3)</span><span>Bueno (4)</span><span>Muy bueno (5)</span>
+        </div>
+        <div id="s1Questions"></div>
+        <div style="text-align:right;font-size:12.5px;color:var(--muted);margin-top:8px;">
+          Subtotal Sección 1: <b id="s1Subtotal" style="color:var(--navy);">0</b> / 20
+        </div>
+
+        <div class="section-title">Sección 2 — Integración al puesto</div>
+        <div class="scale-head">
+          <span></span><span>Total. desacuerdo (1)</span><span>En desacuerdo (2)</span><span>Neutral (3)</span><span>De acuerdo (4)</span><span>Total. acuerdo (5)</span>
+        </div>
+        <div id="s2Questions"></div>
+        <div style="text-align:right;font-size:12.5px;color:var(--muted);margin-top:8px;">
+          Subtotal Sección 2: <b id="s2Subtotal" style="color:var(--navy);">0</b> / 30
+        </div>
+
+        <div class="summary-bar">
+          <svg class="gauge" id="gaugeSvg" viewBox="0 0 100 100"></svg>
+          <div class="summary-text">
+            <div class="pct" id="summaryPct">0%</div>
+            <div class="lvl" id="summaryLvl">Sin datos suficientes — responde las 10 preguntas</div>
+          </div>
+          <button class="submit-btn" id="submitBtn" disabled>Guardar evaluación</button>
+        </div>
+        <div id="formMsg" class="form-msg"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalNombre"></h3>
+    <div class="meta" id="modalMeta"></div>
+    <div class="row"><span>Subtotal Sección 1</span><b id="modalS1"></b></div>
+    <div class="row"><span>Subtotal Sección 2</span><b id="modalS2"></b></div>
+    <div class="row"><span>Total</span><b id="modalTotal"></b></div>
+    <div class="row"><span>Calificación</span><b id="modalPct"></b></div>
+    <div class="row"><span>Nivel de adaptación</span><b id="modalNivel"></b></div>
+    <button class="modal-close" id="modalClose">Cerrar</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA MODEL
+   ============================================================ */
+const S1_QUESTIONS = [
+  "Contenido del curso, material y herramientas para nuevos colaboradores",
+  "Bienvenida del gerente / jefe directo",
+  "Bienvenida de compañeros / equipo de trabajo",
+  "Trato recibido por el responsable de recursos humanos de tu planta"
+];
+const S2_QUESTIONS = [
+  "He tenido los recursos necesarios para realizar mis funciones",
+  "Mi equipo me ha ayudado a entablar relaciones útiles para mi trabajo",
+  "Mi jefe directo estableció los objetivos y funciones de mi puesto",
+  "Conozco la misión, visión y valores de la empresa",
+  "Tomé la decisión correcta al entrar a la empresa",
+  "Conozco las instalaciones de la empresa"
+];
+
+const DEMO_DATA = [
+  {Nombre:"Laura Martínez",Area_Planta:"Planta 1 — Calidad",Fecha:"2026-06-02",S1_P1:5,S1_P2:4,S1_P3:5,S1_P4:4,Subtotal_S1:18,S2_P1:5,S2_P2:4,S2_P3:5,S2_P4:4,S2_P5:5,S2_P6:5,Subtotal_S2:28,Total:46,Porcentaje:92,Nivel:"Excelente"},
+  {Nombre:"Jorge Salinas",Area_Planta:"Planta 2 — Producción",Fecha:"2026-06-10",S1_P1:4,S1_P2:3,S1_P3:4,S1_P4:4,Subtotal_S1:15,S2_P1:4,S2_P2:4,S2_P3:3,S2_P4:4,S2_P5:4,S2_P6:4,Subtotal_S2:23,Total:38,Porcentaje:76,Nivel:"Bueno"},
+  {Nombre:"Ana Reyes",Area_Planta:"Planta 2 — Producción",Fecha:"2026-06-18",S1_P1:3,S1_P2:3,S1_P3:3,S1_P4:2,Subtotal_S1:11,S2_P1:3,S2_P2:3,S2_P3:3,S2_P4:2,S2_P5:3,S2_P6:3,Subtotal_S2:17,Total:28,Porcentaje:56,Nivel:"Bajo"},
+  {Nombre:"Ricardo Peña",Area_Planta:"Planta 1 — Mantenimiento",Fecha:"2026-06-25",S1_P1:4,S1_P2:4,S1_P3:4,S1_P4:5,Subtotal_S1:17,S2_P1:4,S2_P2:5,S2_P3:4,S2_P4:5,S2_P5:5,S2_P6:4,Subtotal_S2:27,Total:44,Porcentaje:88,Nivel:"Bueno"},
+  {Nombre:"Diana Cortés",Area_Planta:"Administración",Fecha:"2026-07-01",S1_P1:3,S1_P2:4,S1_P3:3,S1_P4:3,Subtotal_S1:13,S2_P1:3,S2_P2:3,S2_P3:4,S2_P4:3,S2_P5:4,S2_P6:3,Subtotal_S2:20,Total:33,Porcentaje:66,Nivel:"Regular"},
+  {Nombre:"Marco Villareal",Area_Planta:"Planta 2 — Producción",Fecha:"2026-07-09",S1_P1:5,S1_P2:5,S1_P3:5,S1_P4:5,Subtotal_S1:20,S2_P1:5,S2_P2:5,S2_P3:5,S2_P4:4,S2_P5:5,S2_P6:5,Subtotal_S2:29,Total:49,Porcentaje:98,Nivel:"Excelente"}
+];
+
+let evaluations = [];
+let isDemo = false;
+const WEB_APP_URL = (typeof CONFIG !== 'undefined' && CONFIG.WEB_APP_URL) ? CONFIG.WEB_APP_URL.trim() : "";
+
+/* ============================================================
+   NIVEL / SCORING
+   ============================================================ */
+function nivelFromPct(pct){
+  if (pct >= 90) return "Excelente";
+  if (pct >= 75) return "Bueno";
+  if (pct >= 60) return "Regular";
+  return "Bajo";
+}
+function nivelClass(nivel){ return nivel.toLowerCase(); }
+function nivelColor(nivel){
+  return { Excelente:"#1F3864", Bueno:"#2E5FA3", Regular:"#7C93B3", Bajo:"#A6483C" }[nivel] || "#7C93B3";
+}
+
+/* ============================================================
+   DATA LOADING
+   ============================================================ */
+async function loadData(){
+  if (!WEB_APP_URL){
+    evaluations = DEMO_DATA.slice();
+    isDemo = true;
+    document.getElementById('demoBanner').style.display = 'flex';
+    renderAll();
+    return;
+  }
+  try{
+    const res = await fetch(WEB_APP_URL, { method: 'GET' });
+    const data = await res.json();
+    evaluations = data.map(function(r){
+      return {
+        Nombre:r.Nombre, Area_Planta:r.Area_Planta, Fecha:r.Fecha,
+        S1_P1:Number(r.S1_P1), S1_P2:Number(r.S1_P2), S1_P3:Number(r.S1_P3), S1_P4:Number(r.S1_P4),
+        Subtotal_S1:Number(r.Subtotal_S1),
+        S2_P1:Number(r.S2_P1), S2_P2:Number(r.S2_P2), S2_P3:Number(r.S2_P3),
+        S2_P4:Number(r.S2_P4), S2_P5:Number(r.S2_P5), S2_P6:Number(r.S2_P6),
+        Subtotal_S2:Number(r.Subtotal_S2),
+        Total:Number(r.Total), Porcentaje:Number(r.Porcentaje), Nivel:r.Nivel
+      };
+    });
+    isDemo = false;
+    document.getElementById('demoBanner').style.display = 'none';
+  }catch(err){
+    console.error('No se pudo conectar con la hoja de Google Sheets:', err);
+    evaluations = DEMO_DATA.slice();
+    isDemo = true;
+    document.getElementById('demoBanner').style.display = 'flex';
+    document.getElementById('demoBanner').innerHTML =
+      '<div>⚠</div><div><b>No se pudo conectar con Google Sheets.</b> Revisa que la URL en config.js sea correcta y que la implementación tenga acceso "Cualquier usuario". Mostrando datos de ejemplo mientras tanto.</div>';
+  }
+  renderAll();
+}
+
+/* ============================================================
+   RENDER: KPIs, charts, table
+   ============================================================ */
+let chartTrend, chartNivel, chartArea;
+
+function renderAll(){
+  renderKPIs();
+  renderCharts();
+  renderTable();
+}
+
+function renderKPIs(){
+  const total = evaluations.length;
+  document.getElementById('kpiTotal').textContent = total;
+
+  const avgPct = total ? Math.round(evaluations.reduce((a,e)=>a+e.Porcentaje,0)/total) : 0;
+  document.getElementById('kpiPromedio').innerHTML = avgPct + '<small>%</small>';
+
+  const buenas = total ? Math.round(100*evaluations.filter(e=>e.Nivel==='Excelente'||e.Nivel==='Bueno').length/total) : 0;
+  document.getElementById('kpiBuenas').innerHTML = buenas + '<small>%</small>';
+
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-30);
+  const recientes = evaluations.filter(e=>{ const d=new Date(e.Fecha); return !isNaN(d) && d>=cutoff; }).length;
+  document.getElementById('kpiRecientes').textContent = recientes;
+}
+
+function renderCharts(){
+  const sorted = evaluations.slice().sort((a,b)=> new Date(a.Fecha) - new Date(b.Fecha));
+  const recent = sorted.slice(-12);
+
+  const trendCtx = document.getElementById('chartTrend');
+  if (chartTrend) chartTrend.destroy();
+  chartTrend = new Chart(trendCtx, {
+    type: 'line',
+    data: {
+      labels: recent.map(e=>e.Nombre),
+      datasets: [{
+        label: '% de adaptación',
+        data: recent.map(e=>e.Porcentaje),
+        borderColor: '#2E5FA3',
+        backgroundColor: 'rgba(46,95,163,0.12)',
+        tension: 0.3, fill: true, pointRadius: 4,
+        pointBackgroundColor: recent.map(e=>nivelColor(e.Nivel))
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ y:{ min:0, max:100, ticks:{ callback:v=>v+'%' } }, x:{ ticks:{ maxRotation:35, minRotation:0, font:{size:10} } } }
+    }
+  });
+
+  const niveles = ['Excelente','Bueno','Regular','Bajo'];
+  const counts = niveles.map(n=>evaluations.filter(e=>e.Nivel===n).length);
+  const nivelCtx = document.getElementById('chartNivel');
+  if (chartNivel) chartNivel.destroy();
+  chartNivel = new Chart(nivelCtx, {
+    type:'doughnut',
+    data:{ labels:niveles, datasets:[{ data:counts, backgroundColor:niveles.map(nivelColor), borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{ position:'bottom', labels:{ boxWidth:11, font:{size:11.5} } } } }
+  });
+
+  const areas = [...new Set(evaluations.map(e=>e.Area_Planta))];
+  const areaAvgs = areas.map(a=>{
+    const list = evaluations.filter(e=>e.Area_Planta===a);
+    return Math.round(list.reduce((s,e)=>s+e.Porcentaje,0)/list.length);
+  });
+  const areaCtx = document.getElementById('chartArea');
+  if (chartArea) chartArea.destroy();
+  chartArea = new Chart(areaCtx, {
+    type:'bar',
+    data:{ labels:areas, datasets:[{ label:'Promedio %', data:areaAvgs, backgroundColor:'#2E5FA3', borderRadius:5, maxBarThickness:38 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ y:{ min:0, max:100, ticks:{ callback:v=>v+'%' } } }
+    }
+  });
+}
+
+function renderTable(){
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const filterNivel = document.getElementById('filterNivel').value;
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  const filtered = evaluations.filter(e=>{
+    const matchSearch = !search || (e.Nombre||'').toLowerCase().includes(search) || (e.Area_Planta||'').toLowerCase().includes(search);
+    const matchNivel = !filterNivel || e.Nivel === filterNivel;
+    return matchSearch && matchNivel;
+  }).sort((a,b)=> new Date(b.Fecha) - new Date(a.Fecha));
+
+  document.getElementById('emptyState').style.display = filtered.length ? 'none' : 'block';
+
+  filtered.forEach(e=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>'+escapeHtml(e.Nombre)+'</td>'+
+      '<td>'+escapeHtml(e.Area_Planta)+'</td>'+
+      '<td>'+formatDate(e.Fecha)+'</td>'+
+      '<td>'+e.Total+' / 50</td>'+
+      '<td>'+e.Porcentaje+'%</td>'+
+      '<td><span class="badge '+nivelClass(e.Nivel)+'">'+e.Nivel+'</span></td>';
+    tr.addEventListener('click', ()=>openModal(e));
+    tbody.appendChild(tr);
+  });
+}
+
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+function formatDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+function openModal(e){
+  document.getElementById('modalNombre').textContent = e.Nombre;
+  document.getElementById('modalMeta').textContent = (e.Area_Planta||'') + ' · ' + formatDate(e.Fecha);
+  document.getElementById('modalS1').textContent = e.Subtotal_S1 + ' / 20';
+  document.getElementById('modalS2').textContent = e.Subtotal_S2 + ' / 30';
+  document.getElementById('modalTotal').textContent = e.Total + ' / 50';
+  document.getElementById('modalPct').textContent = e.Porcentaje + '%';
+  document.getElementById('modalNivel').innerHTML = '<span class="badge '+nivelClass(e.Nivel)+'">'+e.Nivel+'</span>';
+  document.getElementById('modalBackdrop').classList.add('show');
+}
+document.getElementById('modalClose').addEventListener('click', ()=> document.getElementById('modalBackdrop').classList.remove('show'));
+document.getElementById('modalBackdrop').addEventListener('click', (ev)=>{ if(ev.target.id==='modalBackdrop') ev.currentTarget.classList.remove('show'); });
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+document.getElementById('navDashboard').addEventListener('click', ()=> switchView('dashboard'));
+document.getElementById('navForm').addEventListener('click', ()=> switchView('form'));
+function switchView(view){
+  document.getElementById('viewDashboard').style.display = view==='dashboard' ? 'block' : 'none';
+  document.getElementById('viewForm').style.display = view==='form' ? 'block' : 'none';
+  document.getElementById('navDashboard').classList.toggle('active', view==='dashboard');
+  document.getElementById('navForm').classList.toggle('active', view==='form');
+  if (view==='dashboard') loadData();
+}
+
+document.getElementById('searchInput').addEventListener('input', renderTable);
+document.getElementById('filterNivel').addEventListener('change', renderTable);
+
+/* ============================================================
+   FORM: build questions
+   ============================================================ */
+function buildQuestions(containerId, questions, prefix){
+  const container = document.getElementById(containerId);
+  questions.forEach((qtext, idx)=>{
+    const qNum = idx+1;
+    const name = prefix + '_P' + qNum;
+    const row = document.createElement('div');
+    row.className = 'question';
+    let optsHtml = '';
+    for (let v=1; v<=5; v++){
+      optsHtml += '<label class="option"><input type="radio" name="'+name+'" value="'+v+'"></label>';
+    }
+    row.innerHTML = '<div class="qtext">'+qNum+'. '+qtext+'</div>' + optsHtml;
+    container.appendChild(row);
+    container.querySelectorAll('input[name="'+name+'"]').forEach(inp=>{
+      inp.addEventListener('change', updateSummary);
+    });
+  });
+}
+buildQuestions('s1Questions', S1_QUESTIONS, 'S1');
+buildQuestions('s2Questions', S2_QUESTIONS, 'S2');
+
+function getAnswers(prefix, count){
+  const vals = [];
+  for (let i=1;i<=count;i++){
+    const el = document.querySelector('input[name="'+prefix+'_P'+i+'"]:checked');
+    vals.push(el ? Number(el.value) : null);
+  }
+  return vals;
+}
+
+function drawGauge(pct, color){
+  const svg = document.getElementById('gaugeSvg');
+  const r = 42, c = 50, circumference = 2*Math.PI*r;
+  const offset = circumference * (1 - pct/100);
+  svg.innerHTML =
+    '<circle cx="'+c+'" cy="'+c+'" r="'+r+'" fill="none" stroke="#E7ECF3" stroke-width="10"/>' +
+    '<circle cx="'+c+'" cy="'+c+'" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="10" ' +
+      'stroke-dasharray="'+circumference+'" stroke-dashoffset="'+offset+'" stroke-linecap="round" ' +
+      'transform="rotate(-90 '+c+' '+c+')"/>';
+}
+
+function updateSummary(){
+  const s1 = getAnswers('S1', 4);
+  const s2 = getAnswers('S2', 6);
+  const s1Sum = s1.reduce((a,v)=>a+(v||0),0);
+  const s2Sum = s2.reduce((a,v)=>a+(v||0),0);
+  document.getElementById('s1Subtotal').textContent = s1Sum;
+  document.getElementById('s2Subtotal').textContent = s2Sum;
+
+  const allAnswered = s1.every(v=>v!==null) && s2.every(v=>v!==null);
+  const total = s1Sum + s2Sum;
+  const pct = Math.round((total/50)*100);
+  const nivel = nivelFromPct(pct);
+  const color = nivelColor(nivel);
+
+  drawGauge(allAnswered ? pct : 0, allAnswered ? color : '#c7d3e3');
+  document.getElementById('summaryPct').textContent = allAnswered ? pct+'%' : '—';
+  document.getElementById('summaryLvl').textContent = allAnswered
+    ? 'Nivel de adaptación: ' + nivel
+    : 'Sin datos suficientes — responde las 10 preguntas';
+
+  const nombreOk = document.getElementById('fNombre').value.trim().length > 0;
+  document.getElementById('submitBtn').disabled = !(allAnswered && nombreOk);
+}
+document.getElementById('fNombre').addEventListener('input', updateSummary);
+drawGauge(0, '#c7d3e3');
+
+document.getElementById('submitBtn').addEventListener('click', async ()=>{
+  const s1 = getAnswers('S1', 4);
+  const s2 = getAnswers('S2', 6);
+  const s1Sum = s1.reduce((a,v)=>a+v,0);
+  const s2Sum = s2.reduce((a,v)=>a+v,0);
+  const total = s1Sum + s2Sum;
+  const pct = Math.round((total/50)*100);
+  const nivel = nivelFromPct(pct);
+
+  const payload = {
+    Nombre: document.getElementById('fNombre').value.trim(),
+    Area_Planta: document.getElementById('fArea').value.trim(),
+    Fecha: document.getElementById('fFecha').value || new Date().toISOString().slice(0,10),
+    S1_P1:s1[0], S1_P2:s1[1], S1_P3:s1[2], S1_P4:s1[3], Subtotal_S1:s1Sum,
+    S2_P1:s2[0], S2_P2:s2[1], S2_P3:s2[2], S2_P4:s2[3], S2_P5:s2[4], S2_P6:s2[5], Subtotal_S2:s2Sum,
+    Total:total, Porcentaje:pct, Nivel:nivel
+  };
+
+  const msg = document.getElementById('formMsg');
+  const btn = document.getElementById('submitBtn');
+
+  if (!WEB_APP_URL){
+    msg.className = 'form-msg err';
+    msg.textContent = 'Modo demo: configura config.js con tu URL de Google Sheets para guardar evaluaciones reales.';
+    return;
+  }
+
+  btn.disabled = true;
+  msg.className = 'form-msg';
+  msg.textContent = 'Guardando…';
+
+  try{
+    await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    msg.className = 'form-msg ok';
+    msg.textContent = '✓ Evaluación guardada correctamente.';
+    document.querySelectorAll('#s1Questions input, #s2Questions input').forEach(i=>i.checked=false);
+    document.getElementById('fNombre').value = '';
+    document.getElementById('fArea').value = '';
+    document.getElementById('fFecha').value = '';
+    updateSummary();
+  }catch(err){
+    msg.className = 'form-msg err';
+    msg.textContent = 'No se pudo guardar. Revisa tu conexión y la URL en config.js.';
+    console.error(err);
+  }
+  btn.disabled = false;
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+loadData();
+</script>
+</body>
+</html>
