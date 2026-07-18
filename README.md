@@ -41,7 +41,10 @@ dashboard y verlas desde cualquier dispositivo).
 > ⚠️ Cada vez que edites el código del Apps Script después de este paso,
 > tienes que crear una **nueva versión** de la implementación
 > (Implementar → Administrar implementaciones → ✏️ → Nueva versión) para que
-> el cambio se aplique. La URL no cambia.
+> el cambio se aplique. La URL no cambia. Sube también el número `VERSION`
+> dentro del código antes de desplegar — así, en la pestaña **Conexión** del
+> dashboard, puedes confirmar de un vistazo que quedó la versión más
+> reciente.
 
 ## Paso 3 — Conectar el dashboard a tu Sheet
 
@@ -84,6 +87,22 @@ Para verlo en línea (no solo en tu repo), activa **GitHub Pages**:
   (10 preguntas, escala 1–5). El puntaje, porcentaje y nivel se calculan
   solos mientras respondes. Al guardar, se agrega como una fila nueva a tu
   Google Sheet.
+- **Catálogo de Empleados**: directorio de colaboradores (Nombre, Área/Planta,
+  Puesto, Fecha de ingreso, Estatus), cruzado automáticamente con su última
+  evaluación de adaptación. Filtra por área/planta, estatus, o busca por
+  nombre/puesto. También puedes agregar empleados nuevos desde ahí — se
+  guardan en una segunda hoja llamada `Empleados` dentro del mismo Google
+  Sheet (se crea sola la primera vez que se usa).
+- **Conexión**: pega o cambia aquí la URL de tu Apps Script sin tocar
+  ningún archivo — se guarda en este navegador. Muestra si está conectado,
+  la versión del Apps Script desplegada, el nombre de la hoja detectada, y
+  cuántas evaluaciones/empleados hay. El botón "Probar conexión" verifica
+  todo en el momento.
+
+  > La URL guardada desde esta pestaña vive en el navegador donde la
+  guardaste (no se sincroniza sola entre computadoras). Si quieres que la
+  URL quede fija para cualquiera que abra el dashboard, edítala también en
+  `config.js` y sube ese cambio a GitHub.
 
 ## Escala de interpretación (igual que el F62-21)
 

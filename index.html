@@ -230,11 +230,56 @@
     font-family:inherit;font-size:13px;color:var(--navy);cursor:pointer;float:right;
   }
 
+  /* ---------- Conexión ---------- */
+  .status-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+  .status-dot{width:11px;height:11px;border-radius:50%;background:#a9b8cc;flex-shrink:0;}
+  .status-dot.connected{background:var(--blue);}
+  .status-dot.error{background:var(--warn);}
+  .status-label{font-size:14px;font-weight:bold;color:var(--navy);}
+  .status-sub{font-size:12px;color:var(--muted);}
+  .conn-form{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+  .conn-form input{
+    flex:1;min-width:280px;font-family:inherit;font-size:13px;padding:10px 12px;
+    border:1px solid #d9e2ec;border-radius:7px;color:var(--ink);
+  }
+  .btn{
+    font-family:inherit;font-size:13px;font-weight:bold;padding:10px 18px;border-radius:8px;
+    border:none;cursor:pointer;transition:background .15s;
+  }
+  .btn-primary{background:var(--blue);color:var(--white);}
+  .btn-primary:hover{background:var(--navy);}
+  .btn-ghost{background:var(--gray);color:var(--navy);}
+  .btn-ghost:hover{background:var(--light-blue);}
+  .conn-source{font-size:11.5px;color:var(--muted);margin-bottom:20px;}
+  .meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px;}
+  .meta-grid .kpi .value{font-size:20px;}
+
+  /* ---------- Catálogo de empleados ---------- */
+  .cat-toolbar{
+    display:flex;gap:10px;padding:16px 20px;border-bottom:1px solid var(--gray);flex-wrap:wrap;align-items:center;
+  }
+  .cat-toolbar input, .cat-toolbar select{
+    font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid #d9e2ec;
+    border-radius:7px;background:var(--white);color:var(--ink);
+  }
+  .cat-toolbar input{flex:1;min-width:160px;}
+  .badge.activo{background:#dbeeff;color:var(--navy);}
+  .badge.baja{background:#f6e3e0;color:var(--warn);}
+  .add-emp-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;margin-bottom:16px;}
+  .add-emp-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 0.8fr auto;gap:10px;align-items:end;}
+  .add-emp-grid .field label{font-size:11px;}
+  .add-emp-grid select{
+    width:100%;font-family:inherit;font-size:13.5px;padding:10px 12px;
+    border:1px solid #d9e2ec;border-radius:7px;color:var(--ink);background:var(--white);
+  }
+
   @media (max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
     .charts-row{grid-template-columns:1fr;}
     .form-grid{grid-template-columns:1fr;}
     .question{grid-template-columns:1fr repeat(5,1fr);font-size:11.5px;}
+    .meta-grid{grid-template-columns:repeat(2,1fr);}
+    .add-emp-grid{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -254,6 +299,14 @@
       <button id="navForm">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
         Nueva Evaluación
+      </button>
+      <button id="navCatalogo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Catálogo de Empleados
+      </button>
+      <button id="navConexion">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+        Conexión
       </button>
     </div>
     <div class="sidebar-foot">F62-21 · Evaluación de Adaptación</div>
@@ -367,6 +420,80 @@
       </div>
     </div>
 
+    <!-- ============ CATÁLOGO DE EMPLEADOS VIEW ============ -->
+    <div id="viewCatalogo" style="display:none;">
+      <div class="page-head">
+        <h1>Catálogo de Empleados</h1>
+        <p>Directorio de colaboradores, cruzado con su última evaluación de adaptación</p>
+      </div>
+
+      <div class="add-emp-card">
+        <div class="add-emp-grid">
+          <div class="field"><label>Nombre</label><input type="text" id="eNombre" placeholder="Nombre completo"></div>
+          <div class="field"><label>Área / Planta</label><input type="text" id="eArea" placeholder="Ej. Planta 2"></div>
+          <div class="field"><label>Puesto</label><input type="text" id="ePuesto" placeholder="Puesto"></div>
+          <div class="field"><label>Fecha de ingreso</label><input type="date" id="eFecha"></div>
+          <div class="field"><label>Estatus</label>
+            <select id="eEstatus"><option value="Activo">Activo</option><option value="Baja">Baja</option></select>
+          </div>
+          <button class="btn btn-primary" id="addEmpBtn">Agregar</button>
+        </div>
+        <div id="empMsg" class="form-msg"></div>
+      </div>
+
+      <div class="table-card">
+        <div class="cat-toolbar">
+          <input type="text" id="empSearchInput" placeholder="Buscar por nombre o puesto…">
+          <select id="empFilterArea"><option value="">Todas las áreas/plantas</option></select>
+          <select id="empFilterEstatus">
+            <option value="">Todos los estatus</option>
+            <option value="Activo">Activo</option>
+            <option value="Baja">Baja</option>
+          </select>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Nombre</th><th>Área / Planta</th><th>Puesto</th><th>Fecha de ingreso</th><th>Estatus</th><th>Última evaluación</th></tr>
+          </thead>
+          <tbody id="empTableBody"></tbody>
+        </table>
+        <div id="empEmptyState" class="empty-state" style="display:none;">Aún no hay empleados registrados en el catálogo.</div>
+      </div>
+    </div>
+
+    <!-- ============ CONEXIÓN VIEW ============ -->
+    <div id="viewConexion" style="display:none;">
+      <div class="page-head">
+        <h1>Conexión con Google Sheets</h1>
+        <p>Pega aquí la URL de tu Apps Script si necesitas cambiarla — no hace falta editar archivos.</p>
+      </div>
+
+      <div class="card">
+        <div class="status-row">
+          <div class="status-dot" id="connDot"></div>
+          <div>
+            <div class="status-label" id="connLabel">Verificando…</div>
+            <div class="status-sub" id="connSub"></div>
+          </div>
+        </div>
+
+        <div class="conn-form">
+          <input type="text" id="connUrlInput" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+          <button class="btn btn-primary" id="connSaveBtn">Guardar y conectar</button>
+          <button class="btn btn-ghost" id="connTestBtn">Probar conexión</button>
+        </div>
+        <div class="conn-source" id="connSource"></div>
+        <div class="form-msg" id="connMsg"></div>
+
+        <div class="meta-grid">
+          <div class="kpi"><div class="label">Versión desplegada</div><div class="value" id="metaVersion">–</div></div>
+          <div class="kpi"><div class="label">Hoja de cálculo</div><div class="value" id="metaSheet" style="font-size:14px;">–</div></div>
+          <div class="kpi"><div class="label">Evaluaciones</div><div class="value" id="metaEvals">–</div></div>
+          <div class="kpi"><div class="label">Empleados</div><div class="value" id="metaEmps">–</div></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -412,9 +539,27 @@ const DEMO_DATA = [
   {Nombre:"Marco Villareal",Area_Planta:"Planta 2 — Producción",Fecha:"2026-07-09",S1_P1:5,S1_P2:5,S1_P3:5,S1_P4:5,Subtotal_S1:20,S2_P1:5,S2_P2:5,S2_P3:5,S2_P4:4,S2_P5:5,S2_P6:5,Subtotal_S2:29,Total:49,Porcentaje:98,Nivel:"Excelente"}
 ];
 
+const DEMO_EMPLEADOS = [
+  {Nombre:"Laura Martínez",Area_Planta:"Planta 1 — Calidad",Puesto:"Inspectora de Calidad",Fecha_Ingreso:"2026-05-20",Estatus:"Activo"},
+  {Nombre:"Jorge Salinas",Area_Planta:"Planta 2 — Producción",Puesto:"Operador General",Fecha_Ingreso:"2026-05-28",Estatus:"Activo"},
+  {Nombre:"Ana Reyes",Area_Planta:"Planta 2 — Producción",Puesto:"Operadora de Montacargas",Fecha_Ingreso:"2026-06-01",Estatus:"Baja"},
+  {Nombre:"Ricardo Peña",Area_Planta:"Planta 1 — Mantenimiento",Puesto:"Técnico de Mantenimiento",Fecha_Ingreso:"2026-06-10",Estatus:"Activo"},
+  {Nombre:"Diana Cortés",Area_Planta:"Administración",Puesto:"Analista de Nómina",Fecha_Ingreso:"2026-06-15",Estatus:"Activo"},
+  {Nombre:"Marco Villareal",Area_Planta:"Planta 2 — Producción",Puesto:"Supervisor de Línea",Fecha_Ingreso:"2026-06-22",Estatus:"Activo"}
+];
+
 let evaluations = [];
+let empleados = [];
 let isDemo = false;
-const WEB_APP_URL = (typeof CONFIG !== 'undefined' && CONFIG.WEB_APP_URL) ? CONFIG.WEB_APP_URL.trim() : "";
+
+const LOCAL_URL_KEY = 'metelmex_adaptacion_webapp_url';
+
+function resolveWebAppUrl(){
+  const saved = localStorage.getItem(LOCAL_URL_KEY);
+  if (saved && saved.trim()) return saved.trim();
+  return (typeof CONFIG !== 'undefined' && CONFIG.WEB_APP_URL) ? CONFIG.WEB_APP_URL.trim() : "";
+}
+let WEB_APP_URL = resolveWebAppUrl();
 
 /* ============================================================
    NIVEL / SCORING
@@ -434,10 +579,15 @@ function nivelColor(nivel){
    DATA LOADING
    ============================================================ */
 async function loadData(){
+  WEB_APP_URL = resolveWebAppUrl();
+
   if (!WEB_APP_URL){
     evaluations = DEMO_DATA.slice();
+    empleados = DEMO_EMPLEADOS.slice();
     isDemo = true;
     document.getElementById('demoBanner').style.display = 'flex';
+    document.getElementById('demoBanner').innerHTML =
+      '<div>⚠</div><div><b>Modo demo.</b> No hay una hoja de Google Sheets conectada, así que estás viendo datos de ejemplo. Ve a la pestaña <b>Conexión</b> y pega la URL de tu Apps Script.</div>';
     renderAll();
     return;
   }
@@ -455,15 +605,26 @@ async function loadData(){
         Total:Number(r.Total), Porcentaje:Number(r.Porcentaje), Nivel:r.Nivel
       };
     });
+
+    const empRes = await fetch(WEB_APP_URL + '?sheet=empleados', { method: 'GET' });
+    const empData = await empRes.json();
+    empleados = empData.map(function(r){
+      return {
+        Nombre:r.Nombre, Area_Planta:r.Area_Planta, Puesto:r.Puesto,
+        Fecha_Ingreso:r.Fecha_Ingreso, Estatus:r.Estatus
+      };
+    });
+
     isDemo = false;
     document.getElementById('demoBanner').style.display = 'none';
   }catch(err){
     console.error('No se pudo conectar con la hoja de Google Sheets:', err);
     evaluations = DEMO_DATA.slice();
+    empleados = DEMO_EMPLEADOS.slice();
     isDemo = true;
     document.getElementById('demoBanner').style.display = 'flex';
     document.getElementById('demoBanner').innerHTML =
-      '<div>⚠</div><div><b>No se pudo conectar con Google Sheets.</b> Revisa que la URL en config.js sea correcta y que la implementación tenga acceso "Cualquier usuario". Mostrando datos de ejemplo mientras tanto.</div>';
+      '<div>⚠</div><div><b>No se pudo conectar con Google Sheets.</b> Revisa la URL en la pestaña <b>Conexión</b> y que la implementación tenga acceso "Cualquier usuario". Mostrando datos de ejemplo mientras tanto.</div>';
   }
   renderAll();
 }
@@ -477,6 +638,7 @@ function renderAll(){
   renderKPIs();
   renderCharts();
   renderTable();
+  renderCatalogo();
 }
 
 function renderKPIs(){
@@ -585,6 +747,176 @@ function formatDate(iso){
 }
 
 /* ============================================================
+   CATÁLOGO DE EMPLEADOS
+   ============================================================ */
+function lastEvaluationFor(nombre){
+  const list = evaluations.filter(e=> (e.Nombre||'').toLowerCase() === (nombre||'').toLowerCase());
+  if (!list.length) return null;
+  return list.sort((a,b)=> new Date(b.Fecha) - new Date(a.Fecha))[0];
+}
+
+function populateAreaFilter(){
+  const sel = document.getElementById('empFilterArea');
+  const current = sel.value;
+  const areas = [...new Set(empleados.map(e=>e.Area_Planta).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Todas las áreas/plantas</option>' +
+    areas.map(a=>'<option value="'+escapeHtml(a)+'">'+escapeHtml(a)+'</option>').join('');
+  if (areas.includes(current)) sel.value = current;
+}
+
+function renderCatalogo(){
+  populateAreaFilter();
+  const search = document.getElementById('empSearchInput').value.toLowerCase();
+  const filterArea = document.getElementById('empFilterArea').value;
+  const filterEstatus = document.getElementById('empFilterEstatus').value;
+  const tbody = document.getElementById('empTableBody');
+  tbody.innerHTML = '';
+
+  const filtered = empleados.filter(e=>{
+    const matchSearch = !search || (e.Nombre||'').toLowerCase().includes(search) || (e.Puesto||'').toLowerCase().includes(search);
+    const matchArea = !filterArea || e.Area_Planta === filterArea;
+    const matchEstatus = !filterEstatus || e.Estatus === filterEstatus;
+    return matchSearch && matchArea && matchEstatus;
+  }).sort((a,b)=> (a.Nombre||'').localeCompare(b.Nombre||''));
+
+  document.getElementById('empEmptyState').style.display = filtered.length ? 'none' : 'block';
+
+  filtered.forEach(emp=>{
+    const lastEval = lastEvaluationFor(emp.Nombre);
+    const evalCell = lastEval
+      ? '<span class="badge '+nivelClass(lastEval.Nivel)+'">'+lastEval.Nivel+'</span> <span style="color:var(--muted);font-size:11.5px;">'+formatDate(lastEval.Fecha)+'</span>'
+      : '<span style="color:var(--muted);font-size:12px;">Sin evaluación</span>';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>'+escapeHtml(emp.Nombre)+'</td>'+
+      '<td>'+escapeHtml(emp.Area_Planta)+'</td>'+
+      '<td>'+escapeHtml(emp.Puesto)+'</td>'+
+      '<td>'+formatDate(emp.Fecha_Ingreso)+'</td>'+
+      '<td><span class="badge '+(emp.Estatus==='Activo'?'activo':'baja')+'">'+escapeHtml(emp.Estatus)+'</span></td>'+
+      '<td>'+evalCell+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('empSearchInput').addEventListener('input', renderCatalogo);
+document.getElementById('empFilterArea').addEventListener('change', renderCatalogo);
+document.getElementById('empFilterEstatus').addEventListener('change', renderCatalogo);
+
+document.getElementById('addEmpBtn').addEventListener('click', async ()=>{
+  const nombre = document.getElementById('eNombre').value.trim();
+  const area = document.getElementById('eArea').value.trim();
+  const puesto = document.getElementById('ePuesto').value.trim();
+  const fecha = document.getElementById('eFecha').value;
+  const estatus = document.getElementById('eEstatus').value;
+  const msg = document.getElementById('empMsg');
+
+  if (!nombre){
+    msg.className = 'form-msg err';
+    msg.textContent = 'El nombre es obligatorio.';
+    return;
+  }
+
+  const payload = { _sheet:'empleados', Nombre:nombre, Area_Planta:area, Puesto:puesto, Fecha_Ingreso:fecha, Estatus:estatus };
+
+  if (!WEB_APP_URL){
+    msg.className = 'form-msg err';
+    msg.textContent = 'Modo demo: conecta tu Google Sheet en la pestaña "Conexión" para guardar empleados reales.';
+    return;
+  }
+
+  msg.className = 'form-msg';
+  msg.textContent = 'Guardando…';
+  try{
+    await fetch(WEB_APP_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    msg.className = 'form-msg ok';
+    msg.textContent = '✓ Empleado agregado.';
+    document.getElementById('eNombre').value = '';
+    document.getElementById('eArea').value = '';
+    document.getElementById('ePuesto').value = '';
+    document.getElementById('eFecha').value = '';
+    document.getElementById('eEstatus').value = 'Activo';
+    await loadData();
+  }catch(err){
+    msg.className = 'form-msg err';
+    msg.textContent = 'No se pudo guardar. Revisa tu conexión.';
+    console.error(err);
+  }
+});
+
+/* ============================================================
+   CONEXIÓN
+   ============================================================ */
+function renderConexionTab(){
+  document.getElementById('connUrlInput').value = WEB_APP_URL;
+  const usingLocal = !!(localStorage.getItem(LOCAL_URL_KEY) && localStorage.getItem(LOCAL_URL_KEY).trim());
+  document.getElementById('connSource').textContent = !WEB_APP_URL
+    ? 'Ninguna URL configurada todavía.'
+    : usingLocal
+      ? 'Usando la URL guardada desde esta pestaña (en este navegador).'
+      : 'Usando la URL definida en config.js.';
+  testConnection(false);
+}
+
+function setConnStatus(state, label, sub){
+  const dot = document.getElementById('connDot');
+  dot.className = 'status-dot' + (state==='ok' ? ' connected' : state==='error' ? ' error' : '');
+  document.getElementById('connLabel').textContent = label;
+  document.getElementById('connSub').textContent = sub || '';
+}
+
+async function testConnection(showMsg){
+  const msg = document.getElementById('connMsg');
+  if (showMsg){ msg.className = 'form-msg'; msg.textContent = 'Probando conexión…'; }
+
+  if (!WEB_APP_URL){
+    setConnStatus('idle', 'Sin conectar', 'No has configurado una URL de Google Sheets.');
+    ['metaVersion','metaSheet','metaEvals','metaEmps'].forEach(id=>document.getElementById(id).textContent='–');
+    if (showMsg){ msg.className='form-msg err'; msg.textContent='Pega una URL antes de probar la conexión.'; }
+    return;
+  }
+
+  try{
+    const res = await fetch(WEB_APP_URL + '?meta=1');
+    const meta = await res.json();
+    setConnStatus('ok', 'Conectado', 'Última verificación: ' + new Date(meta.serverTime).toLocaleString('es-MX'));
+    document.getElementById('metaVersion').textContent = meta.version || '–';
+    document.getElementById('metaSheet').textContent = meta.sheetName || '–';
+    document.getElementById('metaEvals').textContent = meta.evaluaciones ?? '–';
+    document.getElementById('metaEmps').textContent = meta.empleados ?? '–';
+    if (showMsg){ msg.className='form-msg ok'; msg.textContent='✓ Conexión exitosa.'; }
+  }catch(err){
+    setConnStatus('error', 'Error de conexión', 'No se pudo contactar la URL configurada.');
+    ['metaVersion','metaSheet','metaEvals','metaEmps'].forEach(id=>document.getElementById(id).textContent='–');
+    if (showMsg){ msg.className='form-msg err'; msg.textContent='No se pudo conectar. Revisa la URL y que el acceso sea "Cualquier usuario".'; }
+    console.error(err);
+  }
+}
+
+document.getElementById('connSaveBtn').addEventListener('click', async ()=>{
+  const val = document.getElementById('connUrlInput').value.trim();
+  if (val){
+    localStorage.setItem(LOCAL_URL_KEY, val);
+  } else {
+    localStorage.removeItem(LOCAL_URL_KEY);
+  }
+  await loadData();
+  renderConexionTab();
+  const msg = document.getElementById('connMsg');
+  msg.className = 'form-msg ok';
+  msg.textContent = '✓ Conexión guardada en este navegador.';
+});
+
+document.getElementById('connTestBtn').addEventListener('click', ()=>{
+  WEB_APP_URL = document.getElementById('connUrlInput').value.trim();
+  testConnection(true);
+});
+
+/* ============================================================
    MODAL
    ============================================================ */
 function openModal(e){
@@ -605,12 +937,22 @@ document.getElementById('modalBackdrop').addEventListener('click', (ev)=>{ if(ev
    ============================================================ */
 document.getElementById('navDashboard').addEventListener('click', ()=> switchView('dashboard'));
 document.getElementById('navForm').addEventListener('click', ()=> switchView('form'));
+document.getElementById('navCatalogo').addEventListener('click', ()=> switchView('catalogo'));
+document.getElementById('navConexion').addEventListener('click', ()=> switchView('conexion'));
+
 function switchView(view){
   document.getElementById('viewDashboard').style.display = view==='dashboard' ? 'block' : 'none';
   document.getElementById('viewForm').style.display = view==='form' ? 'block' : 'none';
+  document.getElementById('viewCatalogo').style.display = view==='catalogo' ? 'block' : 'none';
+  document.getElementById('viewConexion').style.display = view==='conexion' ? 'block' : 'none';
+
   document.getElementById('navDashboard').classList.toggle('active', view==='dashboard');
   document.getElementById('navForm').classList.toggle('active', view==='form');
-  if (view==='dashboard') loadData();
+  document.getElementById('navCatalogo').classList.toggle('active', view==='catalogo');
+  document.getElementById('navConexion').classList.toggle('active', view==='conexion');
+
+  if (view==='dashboard' || view==='catalogo') loadData();
+  if (view==='conexion') renderConexionTab();
 }
 
 document.getElementById('searchInput').addEventListener('input', renderTable);
@@ -696,6 +1038,7 @@ document.getElementById('submitBtn').addEventListener('click', async ()=>{
   const nivel = nivelFromPct(pct);
 
   const payload = {
+    _sheet: 'evaluaciones',
     Nombre: document.getElementById('fNombre').value.trim(),
     Area_Planta: document.getElementById('fArea').value.trim(),
     Fecha: document.getElementById('fFecha').value || new Date().toISOString().slice(0,10),
